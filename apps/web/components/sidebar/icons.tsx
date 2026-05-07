@@ -41,6 +41,7 @@ const iconMap: Record<string, IconEntry> = {
   "/getting-started": { icon: Download, color: "var(--green-9)" },
   "/getting-started/typescript": { icon: Code, color: "var(--blue-9)" },
   "/getting-started/react": { icon: Atom, color: "var(--cyan-9)" },
+  "/getting-started/playground": { icon: Dial, color: "var(--pink-9)" },
 
   "/cli": { icon: WindowCode2, color: "var(--purple-9)" },
 
