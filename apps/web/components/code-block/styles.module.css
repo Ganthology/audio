@@ -64,6 +64,11 @@
   }
 }
 
+/** Wraps either Shiki’s full `<pre>` (injected) or our `<pre>{children}</pre>`. */
+.preBody {
+  min-width: 0;
+}
+
 .root pre {
   width: max-content;
   min-width: 100%;
@@ -169,6 +174,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
+  color: var(--ds-gray-12);
 }
 
 .icon {

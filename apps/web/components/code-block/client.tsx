@@ -11,7 +11,7 @@ import PnpmIcon from "@web-kits/icons/social-media/pnpm";
 import YarnIcon from "@web-kits/icons/social-media/yarn";
 import { Calligraph } from "calligraph";
 import { AnimatePresence, motion } from "motion/react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useCallback, useRef, useState } from "react";
 import { useScrollFade } from "@/lib/hooks/use-scroll-fade";
 import styles from "./styles.module.css";
@@ -65,22 +65,47 @@ export function Pre(
   props: React.ComponentPropsWithoutRef<"pre"> & {
     title?: string;
     icon?: string;
+    /** When set, shown instead of HTML `icon` (for client components). */
+    titleIcon?: ReactNode;
+    /** Default true. Set false when the parent provides its own copy control. */
+    showCopyButton?: boolean;
+    /**
+     * Full HTML from `highlighter.codeToHtml()` (classic `<pre class="shiki">…</pre>`).
+     * When set, `children` and extra `pre` props are ignored — no reparsing or splitting.
+     */
+    highlightedHtml?: string;
   },
 ) {
-  const { title, icon, children, ...rest } = props;
-  const ref = useRef<HTMLPreElement>(null);
+  const {
+    title,
+    icon,
+    titleIcon,
+    showCopyButton = true,
+    children,
+    highlightedHtml,
+    ...rest
+  } = props;
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   const getText = useCallback(
-    () => ref.current?.querySelector("code")?.textContent ?? "",
+    () => bodyRef.current?.querySelector("code")?.textContent ?? "",
     [],
   );
 
-  const iconElement = icon ? (
-    // biome-ignore lint/security/noDangerouslySetInnerHtml: trusted Shiki build-time output
-    <span className={styles.icon} dangerouslySetInnerHTML={{ __html: icon }} />
-  ) : null;
+  const iconElement =
+    titleIcon != null ? (
+      <span className={styles.icon}>{titleIcon}</span>
+    ) : icon ? (
+      <span
+        className={styles.icon}
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: trusted Shiki build-time output
+        dangerouslySetInnerHTML={{ __html: icon }}
+      />
+    ) : null;
 
   const { ref: scrollRef, fade } = useScrollFade<HTMLDivElement>();
+
+  const useShiki = highlightedHtml != null && highlightedHtml.length > 0;
 
   return (
     <div className={styles.root}>
@@ -90,14 +115,21 @@ export function Pre(
             {iconElement}
             {title}
           </span>
-          <CopyButton text={getText} />
+          {showCopyButton ? <CopyButton text={getText} /> : null}
         </div>
       )}
       <div className={styles.preFrame}>
         <div className={styles.preScroll} ref={scrollRef} data-fade={fade}>
-          <pre ref={ref} {...rest}>
-            {children}
-          </pre>
+          <div ref={bodyRef} className={styles.preBody}>
+            {useShiki ? (
+              <div
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: output of Shiki codeToHtml
+                dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+              />
+            ) : (
+              <pre {...rest}>{children}</pre>
+            )}
+          </div>
         </div>
       </div>
     </div>
