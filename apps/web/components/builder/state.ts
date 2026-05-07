@@ -50,25 +50,21 @@ export type BuilderAction =
   | { type: "remove-master-effect"; effectIndex: number }
   | { type: "update-master-effect"; effectIndex: number; effect: Effect };
 
-export const INITIAL_STATE: BuilderState = {
-  layers: [
-    {
-      _id: 0,
-      source: { type: "sine", frequency: 440 },
-      envelope: { decay: 0.3 },
-      gain: 0.3,
-    },
-  ],
-  effects: [],
-  _nextId: 1,
-};
-
 function defaultLayer(id: number): BuilderLayer {
   return {
     _id: id,
     source: { type: "sine", frequency: 440 },
     envelope: { decay: 0.3 },
     gain: 0.3,
+  };
+}
+
+/** Fresh state for a new builder (Layer 1 + sine — playground default). */
+export function createInitialBuilderState(): BuilderState {
+  return {
+    layers: [defaultLayer(0)],
+    effects: [],
+    _nextId: 1,
   };
 }
 
@@ -111,7 +107,16 @@ function updateLayer(
   return { ...state, layers };
 }
 
-export function builderReducer(
+function ensureAtLeastOneLayer(state: BuilderState): BuilderState {
+  if (state.layers.length > 0) return state;
+  return {
+    ...state,
+    layers: [defaultLayer(state._nextId)],
+    _nextId: state._nextId + 1,
+  };
+}
+
+function reduceBuilder(
   state: BuilderState,
   action: BuilderAction,
 ): BuilderState {
@@ -245,6 +250,13 @@ export function builderReducer(
   }
 }
 
+export function builderReducer(
+  state: BuilderState,
+  action: BuilderAction,
+): BuilderState {
+  return ensureAtLeastOneLayer(reduceBuilder(state, action));
+}
+
 export function toDefinition(state: BuilderState): SoundDefinition {
   if (state.layers.length === 1 && state.effects.length === 0) {
     return cleanLayer(state.layers[0]);
@@ -257,15 +269,16 @@ export function toDefinition(state: BuilderState): SoundDefinition {
 }
 
 function cleanLayer(layer: BuilderLayer): Layer {
-  const out: Layer = { source: layer.source };
-  if (layer.filter) out.filter = layer.filter;
-  if (layer.envelope) out.envelope = layer.envelope;
+  const out: Layer = { source: structuredClone(layer.source) };
+  if (layer.filter) out.filter = structuredClone(layer.filter);
+  if (layer.envelope) out.envelope = structuredClone(layer.envelope);
   if (layer.gain !== undefined && layer.gain !== 1) out.gain = layer.gain;
   if (layer.pan !== undefined && layer.pan !== 0) out.pan = layer.pan;
   if (layer.delay !== undefined && layer.delay !== 0) out.delay = layer.delay;
-  if (layer.lfo) out.lfo = layer.lfo;
-  if (layer.effects && layer.effects.length > 0) out.effects = layer.effects;
-  if (layer.panner) out.panner = layer.panner;
+  if (layer.lfo) out.lfo = structuredClone(layer.lfo);
+  if (layer.effects && layer.effects.length > 0)
+    out.effects = structuredClone(layer.effects);
+  if (layer.panner) out.panner = structuredClone(layer.panner);
   return out;
 }
 
