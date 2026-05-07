@@ -1,6 +1,7 @@
 import type { Effect } from "@web-kits/audio";
 import { useRef } from "react";
 import { PlusIcon, TrashIcon } from "@/components/controls/icons";
+import { ActionButton, Select } from "../controls";
 import styles from "../styles.module.css";
 
 const EFFECT_TYPES = [
@@ -20,6 +21,9 @@ const EFFECT_TYPES = [
 ] as const;
 
 type EffectType = (typeof EFFECT_TYPES)[number];
+
+const EFFECT_TYPE_ITEMS: ReadonlyArray<{ value: EffectType; label: string }> =
+  EFFECT_TYPES.map((t) => ({ value: t, label: t }));
 
 type Props = {
   effects: Effect[];
@@ -46,9 +50,9 @@ export function EffectEditor({ effects, onAdd, onRemove, onUpdate }: Props) {
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
         <span className={styles.sectionLabel}>Effects</span>
-        <button type="button" className={styles.sectionAddBtn} onClick={onAdd}>
+        <ActionButton className={styles.sectionAddBtn} onClick={onAdd}>
           <PlusIcon size={10} /> Add
-        </button>
+        </ActionButton>
       </div>
 
       {effects.map((effect, i) => (
@@ -63,7 +67,7 @@ export function EffectEditor({ effects, onAdd, onRemove, onUpdate }: Props) {
   );
 }
 
-function EffectItem({
+export function EffectItem({
   effect,
   onRemove,
   onUpdate,
@@ -79,20 +83,20 @@ function EffectItem({
   return (
     <div className={styles.inlineItem}>
       <div className={styles.inlineItemHeader}>
-        <select
-          className={styles.fieldSelect}
+        <Select
+          ariaLabel="Effect type"
           value={effect.type}
-          onChange={(e) => handleTypeChange(e.target.value)}
+          onValueChange={handleTypeChange}
+          items={EFFECT_TYPE_ITEMS}
+        />
+        <ActionButton
+          intent="delete"
+          className={styles.iconBtn}
+          aria-label="Remove effect"
+          onClick={onRemove}
         >
-          {EFFECT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-        <button type="button" className={styles.iconBtn} onClick={onRemove}>
           <TrashIcon size={12} />
-        </button>
+        </ActionButton>
       </div>
       <div className={styles.inlineItemFields}>
         <EffectFields effect={effect} onUpdate={onUpdate} />
@@ -501,7 +505,7 @@ function EffectFields({
 
     case "eq":
       return (
-        <span className={styles.fieldLabel}>EQ bands editor coming soon</span>
+        <p className={styles.layerBodyEmpty}>EQ bands editor coming soon</p>
       );
 
     default:

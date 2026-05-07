@@ -3,6 +3,7 @@
 import type { Filter, Layer, LFO } from "@web-kits/audio";
 import { useState } from "react";
 import { ChevronIcon, TrashIcon } from "@/components/controls/icons";
+import { ActionButton, SliderField, ToggleButton } from "../controls";
 import type { BuilderAction } from "../state";
 import styles from "../styles.module.css";
 import { EffectEditor } from "./effect-editor";
@@ -39,32 +40,33 @@ export function LayerPanel({ index, layer, canRemove, dispatch }: Props) {
 
   return (
     <div className={styles.layerPanel}>
-      <button
-        type="button"
-        className={styles.layerHeader}
-        onClick={() => setOpen(!open)}
-      >
-        <ChevronIcon open={open} />
-        <span className={styles.layerTitle}>Layer {index + 1}</span>
-        <span className={styles.layerBadge}>{sourceLabel}</span>
+      <div className={styles.layerHeader}>
+        <ToggleButton
+          className={styles.layerHeaderToggle}
+          aria-controls={`layer-body-${index}`}
+          open={open}
+          onOpenChange={setOpen}
+        >
+          <ChevronIcon open={open} />
+          <span className={styles.layerTitle}>Layer {index + 1}</span>
+          <span className={styles.layerBadge}>{sourceLabel}</span>
+        </ToggleButton>
         <span className={styles.layerActions}>
           {canRemove && (
-            <button
-              type="button"
+            <ActionButton
+              intent="delete"
               className={styles.iconBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch({ type: "remove-layer", index });
-              }}
+              aria-label={`Remove layer ${index + 1}`}
+              onClick={() => dispatch({ type: "remove-layer", index })}
             >
               <TrashIcon size={12} />
-            </button>
+            </ActionButton>
           )}
         </span>
-      </button>
+      </div>
 
       {open && (
-        <div className={styles.layerBody}>
+        <div id={`layer-body-${index}`} className={styles.layerBody}>
           <SourceEditor
             index={index}
             source={layer.source}
@@ -79,48 +81,26 @@ export function LayerPanel({ index, layer, canRemove, dispatch }: Props) {
 
           <div className={styles.section}>
             <span className={styles.sectionLabel}>Mix</span>
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Gain</span>
-              <input
-                type="range"
-                className={styles.fieldInput}
-                value={layer.gain ?? 1}
-                min={0}
-                max={1}
-                step={0.01}
-                onChange={(e) =>
-                  dispatch({
-                    type: "set-gain",
-                    index,
-                    gain: Number(e.target.value),
-                  })
-                }
-              />
-              <span className={styles.fieldRowLabel}>
-                {(layer.gain ?? 1).toFixed(2)}
-              </span>
-            </div>
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Pan</span>
-              <input
-                type="range"
-                className={styles.fieldInput}
-                value={layer.pan ?? 0}
-                min={-1}
-                max={1}
-                step={0.01}
-                onChange={(e) =>
-                  dispatch({
-                    type: "set-pan",
-                    index,
-                    pan: Number(e.target.value),
-                  })
-                }
-              />
-              <span className={styles.fieldRowLabel}>
-                {(layer.pan ?? 0).toFixed(2)}
-              </span>
-            </div>
+            <SliderField
+              label="Gain"
+              value={layer.gain ?? 1}
+              min={0}
+              max={1}
+              step={0.01}
+              onValueChange={(gain) =>
+                dispatch({ type: "set-gain", index, gain })
+              }
+              displayValue={(layer.gain ?? 1).toFixed(2)}
+            />
+            <SliderField
+              label="Pan"
+              value={layer.pan ?? 0}
+              min={-1}
+              max={1}
+              step={0.01}
+              onValueChange={(pan) => dispatch({ type: "set-pan", index, pan })}
+              displayValue={(layer.pan ?? 0).toFixed(2)}
+            />
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Delay</span>
               <input

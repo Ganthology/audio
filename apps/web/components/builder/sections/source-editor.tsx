@@ -1,19 +1,42 @@
 import type { Source } from "@web-kits/audio";
+import { Select } from "../controls";
 import type { BuilderAction } from "../state";
 import styles from "../styles.module.css";
 
-const SOURCE_TYPES = [
-  "sine",
-  "triangle",
-  "square",
-  "sawtooth",
-  "noise",
-  "wavetable",
-  "sample",
-  "constant",
-] as const;
+type SourceType =
+  | "sine"
+  | "triangle"
+  | "square"
+  | "sawtooth"
+  | "noise"
+  | "wavetable"
+  | "sample"
+  | "constant";
 
-const NOISE_COLORS = ["white", "pink", "brown"] as const;
+const SOURCE_TYPE_ITEMS: ReadonlyArray<{ value: SourceType; label: string }> = [
+  { value: "sine", label: "sine" },
+  { value: "triangle", label: "triangle" },
+  { value: "square", label: "square" },
+  { value: "sawtooth", label: "sawtooth" },
+  { value: "noise", label: "noise" },
+  { value: "wavetable", label: "wavetable" },
+  { value: "sample", label: "sample" },
+  { value: "constant", label: "constant" },
+];
+
+type NoiseColor = "white" | "pink" | "brown";
+
+const NOISE_COLOR_ITEMS: ReadonlyArray<{ value: NoiseColor; label: string }> = [
+  { value: "white", label: "white" },
+  { value: "pink", label: "pink" },
+  { value: "brown", label: "brown" },
+];
+
+const TOGGLE_ITEMS: ReadonlyArray<{ value: "true" | "false"; label: string }> =
+  [
+    { value: "false", label: "Off" },
+    { value: "true", label: "On" },
+  ];
 
 type Props = {
   index: number;
@@ -54,17 +77,12 @@ export function SourceEditor({ index, source, dispatch }: Props) {
 
       <div className={styles.field}>
         <span className={styles.fieldLabel}>Type</span>
-        <select
-          className={styles.fieldSelect}
+        <Select
+          ariaLabel="Source type"
           value={source.type}
-          onChange={(e) => handleTypeChange(e.target.value)}
-        >
-          {SOURCE_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
+          onValueChange={handleTypeChange}
+          items={SOURCE_TYPE_ITEMS}
+        />
       </div>
 
       {(source.type === "sine" ||
@@ -77,22 +95,12 @@ export function SourceEditor({ index, source, dispatch }: Props) {
       {source.type === "noise" && (
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Color</span>
-          <select
-            className={styles.fieldSelect}
+          <Select
+            ariaLabel="Noise color"
             value={source.color ?? "white"}
-            onChange={(e) =>
-              set({
-                ...source,
-                color: e.target.value as "white" | "pink" | "brown",
-              })
-            }
-          >
-            {NOISE_COLORS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            onValueChange={(color) => set({ ...source, color })}
+            items={NOISE_COLOR_ITEMS}
+          />
         </div>
       )}
 
@@ -157,16 +165,12 @@ export function SourceEditor({ index, source, dispatch }: Props) {
           </div>
           <div className={styles.field}>
             <span className={styles.fieldLabel}>Loop</span>
-            <select
-              className={styles.fieldSelect}
+            <Select
+              ariaLabel="Sample loop"
               value={source.loop ? "true" : "false"}
-              onChange={(e) =>
-                set({ ...source, loop: e.target.value === "true" })
-              }
-            >
-              <option value="false">Off</option>
-              <option value="true">On</option>
-            </select>
+              onValueChange={(v) => set({ ...source, loop: v === "true" })}
+              items={TOGGLE_ITEMS}
+            />
           </div>
         </>
       )}
@@ -268,11 +272,11 @@ function OscillatorFields({
 
       <div className={styles.field}>
         <span className={styles.fieldLabel}>Sweep</span>
-        <select
-          className={styles.fieldSelect}
+        <Select
+          ariaLabel="Sweep"
           value={isSweep ? "true" : "false"}
-          onChange={(e) => {
-            if (e.target.value === "true") {
+          onValueChange={(v) => {
+            if (v === "true") {
               set({
                 ...source,
                 frequency: { start: freqVal, end: freqVal * 2 },
@@ -281,10 +285,8 @@ function OscillatorFields({
               set({ ...source, frequency: freqVal });
             }
           }}
-        >
-          <option value="false">Off</option>
-          <option value="true">On</option>
-        </select>
+          items={TOGGLE_ITEMS}
+        />
       </div>
 
       <div className={styles.field}>
@@ -300,21 +302,19 @@ function OscillatorFields({
 
       <div className={styles.field}>
         <span className={styles.fieldLabel}>FM</span>
-        <select
-          className={styles.fieldSelect}
+        <Select
+          ariaLabel="FM"
           value={source.fm ? "true" : "false"}
-          onChange={(e) => {
-            if (e.target.value === "true") {
+          onValueChange={(v) => {
+            if (v === "true") {
               set({ ...source, fm: { ratio: 3.5, depth: 200 } });
             } else {
               const { fm: _, ...rest } = source;
               set(rest as Source);
             }
           }}
-        >
-          <option value="false">Off</option>
-          <option value="true">On</option>
-        </select>
+          items={TOGGLE_ITEMS}
+        />
       </div>
 
       {source.fm && (

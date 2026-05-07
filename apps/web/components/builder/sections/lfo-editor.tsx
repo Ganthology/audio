@@ -1,21 +1,29 @@
 import type { LFO, LFOTarget } from "@web-kits/audio";
 import { useRef } from "react";
 import { PlusIcon, TrashIcon } from "@/components/controls/icons";
+import { ActionButton, Select } from "../controls";
 import type { BuilderAction } from "../state";
 import styles from "../styles.module.css";
 
-const WAVEFORMS = ["sine", "triangle", "square", "sawtooth"] as const;
+type Waveform = LFO["type"];
 
-const LFO_TARGETS: LFOTarget[] = [
-  "frequency",
-  "detune",
-  "gain",
-  "pan",
-  "filter.frequency",
-  "filter.detune",
-  "filter.Q",
-  "filter.gain",
-  "playbackRate",
+const WAVEFORM_ITEMS: ReadonlyArray<{ value: Waveform; label: string }> = [
+  { value: "sine", label: "sine" },
+  { value: "triangle", label: "triangle" },
+  { value: "square", label: "square" },
+  { value: "sawtooth", label: "sawtooth" },
+];
+
+const LFO_TARGET_ITEMS: ReadonlyArray<{ value: LFOTarget; label: string }> = [
+  { value: "frequency", label: "frequency" },
+  { value: "detune", label: "detune" },
+  { value: "gain", label: "gain" },
+  { value: "pan", label: "pan" },
+  { value: "filter.frequency", label: "filter.frequency" },
+  { value: "filter.detune", label: "filter.detune" },
+  { value: "filter.Q", label: "filter.Q" },
+  { value: "filter.gain", label: "filter.gain" },
+  { value: "playbackRate", label: "playbackRate" },
 ];
 
 type Props = {
@@ -42,13 +50,12 @@ export function LFOEditor({ index, lfos, dispatch }: Props) {
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
         <span className={styles.sectionLabel}>LFO</span>
-        <button
-          type="button"
+        <ActionButton
           className={styles.sectionAddBtn}
           onClick={() => dispatch({ type: "add-lfo", index })}
         >
           <PlusIcon size={10} /> Add
-        </button>
+        </ActionButton>
       </div>
 
       {lfos.map((lfo, li) => (
@@ -81,43 +88,32 @@ function LFOItem({
   return (
     <div className={styles.inlineItem}>
       <div className={styles.inlineItemHeader}>
-        <select
-          className={styles.fieldSelect}
+        <Select
+          ariaLabel="LFO waveform"
           value={lfo.type}
-          onChange={(e) => set({ ...lfo, type: e.target.value as LFO["type"] })}
-        >
-          {WAVEFORMS.map((w) => (
-            <option key={w} value={w}>
-              {w}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
+          onValueChange={(type) => set({ ...lfo, type })}
+          items={WAVEFORM_ITEMS}
+        />
+        <ActionButton
+          intent="delete"
           className={styles.iconBtn}
+          aria-label="Remove LFO"
           onClick={() =>
             dispatch({ type: "remove-lfo", index: layerIndex, lfoIndex })
           }
         >
           <TrashIcon size={12} />
-        </button>
+        </ActionButton>
       </div>
       <div className={styles.inlineItemFields}>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Target</span>
-          <select
-            className={styles.fieldSelect}
+          <Select
+            ariaLabel="LFO target"
             value={lfo.target}
-            onChange={(e) =>
-              set({ ...lfo, target: e.target.value as LFOTarget })
-            }
-          >
-            {LFO_TARGETS.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+            onValueChange={(target) => set({ ...lfo, target })}
+            items={LFO_TARGET_ITEMS}
+          />
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Frequency</span>

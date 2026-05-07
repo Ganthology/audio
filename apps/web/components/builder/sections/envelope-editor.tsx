@@ -2,6 +2,7 @@
 
 import type { Envelope } from "@web-kits/audio";
 import { useEffect, useRef } from "react";
+import { SliderField } from "../controls";
 import type { BuilderAction } from "../state";
 import styles from "../styles.module.css";
 
@@ -11,15 +12,67 @@ type Props = {
   dispatch: React.Dispatch<BuilderAction>;
 };
 
+type EnvelopeKey = keyof Envelope;
+
+type EnvelopeFieldConfig = {
+  key: EnvelopeKey;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  fallback: number;
+  format: (v: number) => string;
+};
+
+const FIELDS: ReadonlyArray<EnvelopeFieldConfig> = [
+  {
+    key: "attack",
+    label: "Attack",
+    min: 0,
+    max: 2,
+    step: 0.01,
+    fallback: 0,
+    format: (v) => `${v.toFixed(2)}s`,
+  },
+  {
+    key: "decay",
+    label: "Decay",
+    min: 0.01,
+    max: 4,
+    step: 0.01,
+    fallback: 0.3,
+    format: (v) => `${v.toFixed(2)}s`,
+  },
+  {
+    key: "sustain",
+    label: "Sustain",
+    min: 0,
+    max: 1,
+    step: 0.01,
+    fallback: 0,
+    format: (v) => v.toFixed(2),
+  },
+  {
+    key: "release",
+    label: "Release",
+    min: 0,
+    max: 4,
+    step: 0.01,
+    fallback: 0,
+    format: (v) => `${v.toFixed(2)}s`,
+  },
+];
+
 export function EnvelopeEditor({ index, envelope, dispatch }: Props) {
   const env = envelope ?? { decay: 0.3 };
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const set = (next: Envelope) =>
-    dispatch({ type: "set-envelope", index, envelope: next });
-
-  const update = (key: keyof Envelope, value: number) => {
-    set({ ...env, [key]: value });
+  const update = (key: EnvelopeKey, value: number) => {
+    dispatch({
+      type: "set-envelope",
+      index,
+      envelope: { ...env, [key]: value },
+    });
   };
 
   useEffect(() => {
@@ -34,67 +87,21 @@ export function EnvelopeEditor({ index, envelope, dispatch }: Props) {
         <canvas ref={canvasRef} className={styles.adsrCanvas} />
       </div>
 
-      <div className={styles.field}>
-        <span className={styles.fieldLabel}>Attack</span>
-        <input
-          type="range"
-          className={styles.fieldInput}
-          value={env.attack ?? 0}
-          min={0}
-          max={2}
-          step={0.01}
-          onChange={(e) => update("attack", Number(e.target.value))}
-        />
-        <span className={styles.fieldRowLabel}>
-          {(env.attack ?? 0).toFixed(2)}s
-        </span>
-      </div>
-
-      <div className={styles.field}>
-        <span className={styles.fieldLabel}>Decay</span>
-        <input
-          type="range"
-          className={styles.fieldInput}
-          value={env.decay}
-          min={0.01}
-          max={4}
-          step={0.01}
-          onChange={(e) => update("decay", Number(e.target.value))}
-        />
-        <span className={styles.fieldRowLabel}>{env.decay.toFixed(2)}s</span>
-      </div>
-
-      <div className={styles.field}>
-        <span className={styles.fieldLabel}>Sustain</span>
-        <input
-          type="range"
-          className={styles.fieldInput}
-          value={env.sustain ?? 0}
-          min={0}
-          max={1}
-          step={0.01}
-          onChange={(e) => update("sustain", Number(e.target.value))}
-        />
-        <span className={styles.fieldRowLabel}>
-          {(env.sustain ?? 0).toFixed(2)}
-        </span>
-      </div>
-
-      <div className={styles.field}>
-        <span className={styles.fieldLabel}>Release</span>
-        <input
-          type="range"
-          className={styles.fieldInput}
-          value={env.release ?? 0}
-          min={0}
-          max={4}
-          step={0.01}
-          onChange={(e) => update("release", Number(e.target.value))}
-        />
-        <span className={styles.fieldRowLabel}>
-          {(env.release ?? 0).toFixed(2)}s
-        </span>
-      </div>
+      {FIELDS.map((field) => {
+        const value = env[field.key] ?? field.fallback;
+        return (
+          <SliderField
+            key={field.key}
+            label={field.label}
+            value={value}
+            min={field.min}
+            max={field.max}
+            step={field.step}
+            onValueChange={(v) => update(field.key, v)}
+            displayValue={field.format(value)}
+          />
+        );
+      })}
     </div>
   );
 }

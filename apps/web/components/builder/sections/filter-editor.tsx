@@ -1,18 +1,22 @@
 import type { BiquadFilterType, Filter } from "@web-kits/audio";
 import { useRef } from "react";
 import { PlusIcon, TrashIcon } from "@/components/controls/icons";
+import { ActionButton, Select } from "../controls";
 import type { BuilderAction } from "../state";
 import styles from "../styles.module.css";
 
-const BIQUAD_TYPES: BiquadFilterType[] = [
-  "lowpass",
-  "highpass",
-  "bandpass",
-  "notch",
-  "allpass",
-  "peaking",
-  "lowshelf",
-  "highshelf",
+const BIQUAD_TYPE_ITEMS: ReadonlyArray<{
+  value: BiquadFilterType;
+  label: string;
+}> = [
+  { value: "lowpass", label: "lowpass" },
+  { value: "highpass", label: "highpass" },
+  { value: "bandpass", label: "bandpass" },
+  { value: "notch", label: "notch" },
+  { value: "allpass", label: "allpass" },
+  { value: "peaking", label: "peaking" },
+  { value: "lowshelf", label: "lowshelf" },
+  { value: "highshelf", label: "highshelf" },
 ];
 
 type Props = {
@@ -39,13 +43,12 @@ export function FilterEditor({ index, filters, dispatch }: Props) {
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
         <span className={styles.sectionLabel}>Filters</span>
-        <button
-          type="button"
+        <ActionButton
           className={styles.sectionAddBtn}
           onClick={() => dispatch({ type: "add-filter", index })}
         >
           <PlusIcon size={10} /> Add
-        </button>
+        </ActionButton>
       </div>
 
       {filters.map((filter, fi) => (
@@ -85,28 +88,22 @@ function FilterItem({
   return (
     <div className={styles.inlineItem}>
       <div className={styles.inlineItemHeader}>
-        <select
-          className={styles.fieldSelect}
+        <Select
+          ariaLabel="Filter type"
           value={filter.type}
-          onChange={(e) =>
-            set({ ...filter, type: e.target.value as BiquadFilterType })
-          }
-        >
-          {BIQUAD_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
+          onValueChange={(type) => set({ ...filter, type })}
+          items={BIQUAD_TYPE_ITEMS}
+        />
+        <ActionButton
+          intent="delete"
           className={styles.iconBtn}
+          aria-label="Remove filter"
           onClick={() =>
             dispatch({ type: "remove-filter", index: layerIndex, filterIndex })
           }
         >
           <TrashIcon size={12} />
-        </button>
+        </ActionButton>
       </div>
       <div className={styles.inlineItemFields}>
         <div className={styles.field}>

@@ -14,21 +14,33 @@ import {
   useRef,
   useState,
 } from "react";
-import { PlayIcon, PlusIcon, SpeakerIcon } from "@/components/controls/icons";
+import { CopyButton } from "@/components/code-block/client";
+import {
+  ChevronIcon,
+  PlayIcon,
+  PlusIcon,
+  SpeakerIcon,
+} from "@/components/controls/icons";
 import { CodePreview } from "./code-preview";
-import { EffectEditor } from "./sections/effect-editor";
+import { ActionButton, ToggleButton } from "./controls";
 import { LayerPanel } from "./sections/layer-panel";
+import { MasterEffectsPanel } from "./sections/master-effects-panel";
 import {
   builderReducer,
-  INITIAL_STATE,
+  createInitialBuilderState,
   serializeToCode,
   toDefinition,
 } from "./state";
 import styles from "./styles.module.css";
 
 export function SoundBuilder() {
-  const [state, dispatch] = useReducer(builderReducer, INITIAL_STATE);
+  const [state, dispatch] = useReducer(
+    builderReducer,
+    undefined,
+    createInitialBuilderState,
+  );
   const [active, setActive] = useState(false);
+  const [codeOpen, setCodeOpen] = useState(false);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const analyserRef = useRef<AudioAnalyser | null>(null);
@@ -45,13 +57,16 @@ export function SoundBuilder() {
   const handlePlay = useCallback(async () => {
     await ensureReady();
     if (!analyserRef.current) {
-      analyserRef.current = createMasterAnalyser({ fftSize: 2048 });
+      analyserRef.current = createMasterAnalyser({
+        fftSize: 2048,
+        smoothingTimeConstant: 0.45,
+      });
     }
     if (!waveformStarted.current) {
       waveformStarted.current = true;
       startWaveformRef.current();
     }
-    const play = defineSound(definitionRef.current);
+    const play = defineSound(structuredClone(definitionRef.current));
     play();
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -148,36 +163,57 @@ export function SoundBuilder() {
             />
           ))}
 
-          <button
-            type="button"
+          {(state.effects.length > 0 || state.layers.length > 1) && (
+            <MasterEffectsPanel
+              effects={state.effects}
+              onAdd={() => dispatch({ type: "add-master-effect" })}
+              onRemove={(i) =>
+                dispatch({ type: "remove-master-effect", effectIndex: i })
+              }
+              onUpdate={(i, effect) =>
+                dispatch({
+                  type: "update-master-effect",
+                  effectIndex: i,
+                  effect,
+                })
+              }
+            />
+          )}
+
+          <ActionButton
             className={styles.addBtn}
             onClick={() => dispatch({ type: "add-layer" })}
           >
             <PlusIcon size={12} /> Add layer
-          </button>
-
-          {(state.effects.length > 0 || state.layers.length > 1) && (
-            <div className={styles.masterSection}>
-              <EffectEditor
-                effects={state.effects}
-                onAdd={() => dispatch({ type: "add-master-effect" })}
-                onRemove={(i) =>
-                  dispatch({ type: "remove-master-effect", effectIndex: i })
-                }
-                onUpdate={(i, effect) =>
-                  dispatch({
-                    type: "update-master-effect",
-                    effectIndex: i,
-                    effect,
-                  })
-                }
-              />
-            </div>
-          )}
+          </ActionButton>
         </div>
 
-        <div className={styles.codeColumn}>
-          <CodePreview code={code} />
+        <div className={styles.codeSection}>
+          <div className={styles.codeToolbar}>
+            <ToggleButton
+              className={styles.codeToolbarToggle}
+              open={codeOpen}
+              onOpenChange={setCodeOpen}
+              aria-controls="sound-builder-generated-code"
+              id="sound-builder-code-toggle"
+            >
+              <ChevronIcon open={codeOpen} size={12} />
+              <span className={styles.codeToolbarLabel}>
+                Generated code
+                <span className={styles.codeToolbarFile}>sound.ts</span>
+              </span>
+            </ToggleButton>
+            <CopyButton text={code} />
+          </div>
+          {codeOpen ? (
+            <section
+              className={styles.codeExpand}
+              id="sound-builder-generated-code"
+              aria-labelledby="sound-builder-code-toggle"
+            >
+              <CodePreview code={code} />
+            </section>
+          ) : null}
         </div>
       </div>
     </div>

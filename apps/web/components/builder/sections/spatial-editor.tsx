@@ -1,9 +1,27 @@
 import type { Panner3D } from "@web-kits/audio";
+import { ActionButton, Select } from "../controls";
 import type { BuilderAction } from "../state";
 import styles from "../styles.module.css";
 
-const DISTANCE_MODELS = ["linear", "inverse", "exponential"] as const;
-const PANNING_MODELS = ["equalpower", "HRTF"] as const;
+type DistanceModel = NonNullable<Panner3D["distanceModel"]>;
+type PanningModel = NonNullable<Panner3D["panningModel"]>;
+
+const DISTANCE_MODEL_ITEMS: ReadonlyArray<{
+  value: DistanceModel;
+  label: string;
+}> = [
+  { value: "linear", label: "linear" },
+  { value: "inverse", label: "inverse" },
+  { value: "exponential", label: "exponential" },
+];
+
+const PANNING_MODEL_ITEMS: ReadonlyArray<{
+  value: PanningModel;
+  label: string;
+}> = [
+  { value: "equalpower", label: "equalpower" },
+  { value: "HRTF", label: "HRTF" },
+];
 
 type Props = {
   index: number;
@@ -34,9 +52,13 @@ export function SpatialEditor({ index, panner, dispatch }: Props) {
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
         <span className={styles.sectionLabel}>Spatial (3D)</span>
-        <button type="button" className={styles.sectionAddBtn} onClick={toggle}>
+        <ActionButton
+          intent={enabled ? "delete" : "click"}
+          className={styles.sectionAddBtn}
+          onClick={toggle}
+        >
           {enabled ? "Remove" : "Enable"}
-        </button>
+        </ActionButton>
       </div>
 
       {panner && (
@@ -68,40 +90,22 @@ export function SpatialEditor({ index, panner, dispatch }: Props) {
 
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Panning</span>
-              <select
-                className={styles.fieldSelect}
+              <Select
+                ariaLabel="Panning model"
                 value={panner.panningModel ?? "equalpower"}
-                onChange={(e) =>
-                  update({
-                    panningModel: e.target.value as Panner3D["panningModel"],
-                  })
-                }
-              >
-                {PANNING_MODELS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(panningModel) => update({ panningModel })}
+                items={PANNING_MODEL_ITEMS}
+              />
             </div>
 
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Distance</span>
-              <select
-                className={styles.fieldSelect}
+              <Select
+                ariaLabel="Distance model"
                 value={panner.distanceModel ?? "inverse"}
-                onChange={(e) =>
-                  update({
-                    distanceModel: e.target.value as Panner3D["distanceModel"],
-                  })
-                }
-              >
-                {DISTANCE_MODELS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(distanceModel) => update({ distanceModel })}
+                items={DISTANCE_MODEL_ITEMS}
+              />
             </div>
 
             <div className={styles.field}>

@@ -86,34 +86,82 @@
 /* ------------------------------------------------------------------ */
 
 .body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  min-height: 0;
 }
 
 .panels {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  max-height: 600px;
+  min-height: 0;
   overflow-y: auto;
-  border-right: 1px solid var(--ds-gray-a3);
 }
 
-.codeColumn {
+.codeSection {
+  flex-shrink: 0;
+  border-top: 1px solid var(--ds-gray-a3);
+}
+
+.codeToolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--ds-gray-a2);
+}
+
+.codeToolbarToggle {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  font: inherit;
+  color: var(--ds-gray-12);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-small);
+  transition: background 0.1s;
+}
+
+.codeToolbarToggle:hover {
+  background: var(--ds-gray-a3);
+}
+
+.codeToolbarLabel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+  min-width: 0;
+  @typography 13, 500;
+}
+
+.codeToolbarFile {
+  font-family: var(--font-mono);
+  color: var(--ds-gray-9);
+  @typography 12;
+}
+
+.codeExpand {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  max-height: min(40vh, 400px);
   overflow: hidden;
+  background: var(--ds-gray-1);
 }
 
 @media (max-width: 768px) {
   .body {
-    grid-template-columns: 1fr;
-  }
-
-  .panels {
-    max-height: 400px;
-    border-right: none;
-    border-bottom: 1px solid var(--ds-gray-a3);
+    height: min(600px, 85vh);
   }
 }
 
@@ -134,7 +182,6 @@
   gap: 8px;
   align-items: center;
   padding: 10px 14px;
-  cursor: pointer;
   user-select: none;
   transition: background 0.1s;
   @typography 13, 600;
@@ -142,6 +189,20 @@
 
 .layerHeader:hover {
   background: var(--ds-gray-a2);
+}
+
+.layerHeaderToggle {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: none;
 }
 
 .layerTitle {
@@ -183,7 +244,16 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 0 14px 14px;
+  padding: 14px 14px 14px;
+}
+
+/** Full-width helper (not `.fieldLabel`, which is a fixed 72px column). */
+.layerBodyEmpty {
+  display: block;
+  width: 100%;
+  margin: 0;
+  color: var(--ds-gray-10);
+  @typography 11, 500;
 }
 
 /* ------------------------------------------------------------------ */
@@ -282,33 +352,75 @@
   border-color: var(--ds-gray-a8);
 }
 
-.fieldSelect {
-  flex: 1;
-  min-width: 0;
-  padding: 5px 8px;
-  padding-right: 24px;
-  color: var(--ds-gray-12);
-  appearance: none;
-  cursor: pointer;
-  outline: none;
-  background: var(--ds-gray-a2);
-  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  border: 1px solid var(--ds-gray-a4);
-  border-radius: var(--radius-small);
-  transition: border-color 0.12s;
-  @typography 12;
-}
-
-.fieldSelect:focus {
-  border-color: var(--ds-gray-a8);
-}
-
 .fieldRow {
   display: flex;
   flex: 1;
   gap: 6px;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Slider (Base UI)                                                   */
+/* ------------------------------------------------------------------ */
+
+.sliderRoot {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+}
+
+.sliderControl {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  height: 24px;
+  touch-action: none;
+  user-select: none;
+}
+
+.sliderTrack {
+  width: 100%;
+  height: 6px;
+  user-select: none;
+  background: var(--ds-gray-a3);
+  border-radius: 999px;
+}
+
+.sliderIndicator {
+  user-select: none;
+  background: var(--ds-gray-12);
+  border-radius: 999px;
+}
+
+.sliderThumb {
+  width: 16px;
+  height: 16px;
+  user-select: none;
+  background: white;
+  border: 2.5px solid var(--ds-gray-12);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px var(--ds-gray-a3);
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 0.15s ease;
+}
+
+.sliderThumb:hover {
+  transform: scale(1.2);
+}
+
+.sliderThumb:has(:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sliderValue {
+  flex-shrink: 0;
+  width: 44px;
+  font-family: var(--font-mono);
+  color: var(--ds-gray-9);
+  text-align: right;
+  @typography 10;
 }
 
 .fieldRowItem {
@@ -366,69 +478,16 @@
 }
 
 /* ------------------------------------------------------------------ */
-/*  Code preview                                                       */
-/* ------------------------------------------------------------------ */
-
-.codePreview {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.codeHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  background: var(--ds-gray-a2);
-  border-bottom: 1px solid var(--ds-gray-a3);
-}
-
-.codeTitle {
-  color: var(--ds-gray-10);
-  @typography 11, 600;
-}
-
-.copyBtn {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  padding: 4px 8px;
-  color: var(--ds-gray-9);
-  cursor: pointer;
-  border-radius: var(--radius-small);
-  transition:
-    color 0.12s,
-    background 0.12s;
-  @typography 11, 500;
-}
-
-.copyBtn:hover {
-  color: var(--ds-gray-12);
-  background: var(--ds-gray-a3);
-}
-
-.codeBody {
-  flex: 1;
-  padding: 14px;
-  overflow: auto;
-}
-
-.codeBody pre {
-  margin: 0;
-  font-family: var(--font-mono);
-  line-height: 1.6;
-  color: var(--ds-gray-11);
-  tab-size: 2;
-  white-space: pre;
-  @typography 12;
-}
-
-/* ------------------------------------------------------------------ */
 /*  Master effects footer                                              */
 /* ------------------------------------------------------------------ */
 
-.masterSection {
+.codeScroll {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 14px;
-  border-top: 1px solid var(--ds-gray-a3);
+  overflow-y: auto;
+}
+
+.codeScroll > * {
+  margin-bottom: 0;
 }
