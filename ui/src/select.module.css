@@ -1,0 +1,121 @@
+.trigger {
+  display: inline-flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 5px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ds-gray-12);
+  cursor: pointer;
+  user-select: none;
+  background: var(--ds-gray-a2);
+  border: 1px solid var(--ds-gray-a4);
+  border-radius: var(--radius-small);
+  outline: none;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.trigger:hover {
+  background: var(--ds-gray-a3);
+}
+
+.trigger[data-popup-open] {
+  border-color: var(--ds-gray-a8);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--blue-8);
+  outline-offset: 2px;
+}
+
+.trigger[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--ds-gray-9);
+  transition: transform 0.15s ease;
+}
+
+.trigger[data-popup-open] .icon {
+  transform: rotate(180deg);
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  min-width: var(--anchor-width, 8rem);
+  max-height: var(--available-height, 18rem);
+  padding: 4px;
+  overflow-y: auto;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ds-gray-12);
+  background: var(--ds-gray-1);
+  border: 1px solid var(--ds-gray-a4);
+  border-radius: var(--radius-small);
+  outline: none;
+  box-shadow:
+    0 1px 2px var(--ds-gray-a3),
+    0 8px 28px var(--ds-gray-a4);
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.popup[data-starting-style],
+.popup[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.item {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--radius-small);
+  outline: none;
+  transition:
+    background 0.1s ease,
+    color 0.1s ease;
+}
+
+.item[data-highlighted] {
+  background: var(--ds-gray-a3);
+}
+
+.item[data-selected] {
+  color: var(--ds-gray-12);
+  background: var(--ds-gray-a2);
+}
+
+.item[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.itemIndicator {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--ds-gray-11);
+}
