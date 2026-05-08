@@ -36,6 +36,3 @@ Thumbs.db
 !.vscode/settings.json
 .env*.local
 apps/web/next-env.d.ts
-
-# Cursor local agent metadata
-.cursor/
