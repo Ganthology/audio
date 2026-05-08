@@ -4,6 +4,8 @@ import {
   click as clickSound,
   collapse as collapseSound,
   _delete as deleteSound,
+  dropdownClose,
+  dropdownOpen,
   expand as expandSound,
   select as selectSound,
   tap as tapSound,
@@ -23,15 +25,19 @@ const SLIDER_TICK_THROTTLE_MS = 60;
 export function Select<TValue extends string = string>(
   props: SelectProps<TValue>,
 ) {
-  const playOpen = useSound(expandSound);
+  const playDropdownOpen = useSound(dropdownOpen);
+  const playDropdownClose = useSound(dropdownClose);
   const playChange = useSound(selectSound);
+  const openRef = useRef(false);
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
-      if (open) playOpen();
+      if (open && !openRef.current) playDropdownOpen();
+      if (!open && openRef.current) playDropdownClose();
+      openRef.current = open;
       props.onOpenChange?.(open);
     },
-    [playOpen, props.onOpenChange],
+    [playDropdownOpen, playDropdownClose, props.onOpenChange],
   );
 
   const handleValueChange = useCallback(
